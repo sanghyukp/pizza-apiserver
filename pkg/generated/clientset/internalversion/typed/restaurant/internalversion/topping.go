@@ -20,6 +20,7 @@ package internalversion
 
 import (
 	"time"
+	"context"
 
 	restaurant "github.com/programming-kubernetes/pizza-apiserver/pkg/apis/restaurant"
 	scheme "github.com/programming-kubernetes/pizza-apiserver/pkg/generated/clientset/internalversion/scheme"
@@ -67,7 +68,7 @@ func (c *toppings) Get(name string, options v1.GetOptions) (result *restaurant.T
 		Resource("toppings").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
-		Do().
+		Do(context.TODO()).
 		Into(result)
 	return
 }

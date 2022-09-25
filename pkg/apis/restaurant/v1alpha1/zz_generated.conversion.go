@@ -203,7 +203,7 @@ func autoConvert_restaurant_PizzaSpec_To_v1alpha1_PizzaSpec(in *restaurant.Pizza
 		*out = make([]string, len(*in))
 		for i := range *in {
 			// TODO: Inefficient conversion - can we improve it?
-			if err := s.Convert(&(*in)[i], &(*out)[i], 0); err != nil {
+			if err := s.Convert(&(*in)[i], &(*out)[i]); err != nil {
 				return err
 			}
 		}

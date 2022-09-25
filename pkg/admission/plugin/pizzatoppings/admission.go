@@ -17,6 +17,7 @@ limitations under the License.
 package pizzatoppings
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -46,7 +47,7 @@ var _ = admission.ValidationInterface(&PizzaToppingsPlugin{})
 
 // Admit ensures that the object in-flight is of kind Pizza.
 // In addition checks that the toppings are known.
-func (d *PizzaToppingsPlugin) Validate(a admission.Attributes, _ admission.ObjectInterfaces) error {
+func (d *PizzaToppingsPlugin) Validate(ctx context.Context, a admission.Attributes, _ admission.ObjectInterfaces) error {
 	// we are only interested in pizzas
 	if a.GetKind().GroupKind() != restaurant.Kind("Pizza") {
 		return nil

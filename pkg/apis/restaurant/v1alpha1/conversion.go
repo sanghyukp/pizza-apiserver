@@ -17,20 +17,22 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/programming-kubernetes/pizza-apiserver/pkg/apis/restaurant"
 	"k8s.io/apimachinery/pkg/conversion"
 	"k8s.io/apimachinery/pkg/runtime"
-	"github.com/programming-kubernetes/pizza-apiserver/pkg/apis/restaurant"
 )
 
 func addConversionFuncs(scheme *runtime.Scheme) error {
-	err := scheme.AddConversionFuncs(
-		Convert_v1alpha1_PizzaSpec_To_restaurant_PizzaSpec,
-		Convert_restaurant_PizzaSpec_To_v1alpha1_PizzaSpec,
-	)
-	if err != nil {
+	if err := scheme.AddConversionFunc((*PizzaSpec)(nil), (*restaurant.PizzaSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_PizzaSpec_To_restaurant_PizzaSpec(a.(*PizzaSpec), b.(*restaurant.PizzaSpec), scope)
+	}); err != nil {
 		return err
 	}
-
+	if err := scheme.AddConversionFunc((*restaurant.PizzaSpec)(nil), (*PizzaSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_restaurant_PizzaSpec_To_v1alpha1_PizzaSpec(a.(*restaurant.PizzaSpec), b.(*PizzaSpec), scope)
+	}); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -43,7 +45,7 @@ func Convert_v1alpha1_PizzaSpec_To_restaurant_PizzaSpec(in *PizzaSpec, out *rest
 		}
 		idx[top] = len(out.Toppings)
 		out.Toppings = append(out.Toppings, restaurant.PizzaTopping{
-			Name: top,
+			Name:     top,
 			Quantity: 1,
 		})
 	}

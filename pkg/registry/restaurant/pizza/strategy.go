@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/programming-kubernetes/pizza-apiserver/pkg/apis/restaurant/validation"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -27,7 +28,6 @@ import (
 	"k8s.io/apiserver/pkg/registry/generic"
 	"k8s.io/apiserver/pkg/storage"
 	"k8s.io/apiserver/pkg/storage/names"
-	"github.com/programming-kubernetes/pizza-apiserver/pkg/apis/restaurant/validation"
 
 	"github.com/programming-kubernetes/pizza-apiserver/pkg/apis/restaurant"
 )
@@ -95,4 +95,12 @@ func (pizzaStrategy) Canonicalize(obj runtime.Object) {
 
 func (pizzaStrategy) ValidateUpdate(ctx context.Context, obj, old runtime.Object) field.ErrorList {
 	return field.ErrorList{}
+}
+
+func (pizzaStrategy) WarningsOnCreate(ctx context.Context, obj runtime.Object) []string {
+	return []string{""}
+}
+
+func (pizzaStrategy) WarningsOnUpdate(ctx context.Context, obj, old runtime.Object) []string {
+	return []string{""}
 }

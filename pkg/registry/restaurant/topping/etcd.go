@@ -17,11 +17,11 @@ limitations under the License.
 package topping
 
 import (
+	"github.com/programming-kubernetes/pizza-apiserver/pkg/apis/restaurant"
+	"github.com/programming-kubernetes/pizza-apiserver/pkg/registry"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apiserver/pkg/registry/generic"
 	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
-	"github.com/programming-kubernetes/pizza-apiserver/pkg/apis/restaurant"
-	"github.com/programming-kubernetes/pizza-apiserver/pkg/registry"
 )
 
 // NewREST returns a RESTStorage object that will work against API services.
@@ -42,5 +42,5 @@ func NewREST(scheme *runtime.Scheme, optsGetter generic.RESTOptionsGetter) (*reg
 	if err := store.CompleteWithOptions(options); err != nil {
 		return nil, err
 	}
-	return &registry.REST{store}, nil
+	return &registry.REST{Store: store}, nil
 }

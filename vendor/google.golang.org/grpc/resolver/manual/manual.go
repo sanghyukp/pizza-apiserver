@@ -21,40 +21,51 @@
 package manual
 
 import (
-	"strconv"
-	"time"
-
 	"google.golang.org/grpc/resolver"
 )
 
 // NewBuilderWithScheme creates a new test resolver builder with the given scheme.
 func NewBuilderWithScheme(scheme string) *Resolver {
 	return &Resolver{
-		scheme: scheme,
+		BuildCallback:      func(resolver.Target, resolver.ClientConn, resolver.BuildOptions) {},
+		ResolveNowCallback: func(resolver.ResolveNowOptions) {},
+		CloseCallback:      func() {},
+		scheme:             scheme,
 	}
 }
 
 // Resolver is also a resolver builder.
 // It's build() function always returns itself.
 type Resolver struct {
-	scheme string
+	// BuildCallback is called when the Build method is called.  Must not be
+	// nil.  Must not be changed after the resolver may be built.
+	BuildCallback func(resolver.Target, resolver.ClientConn, resolver.BuildOptions)
+	// ResolveNowCallback is called when the ResolveNow method is called on the
+	// resolver.  Must not be nil.  Must not be changed after the resolver may
+	// be built.
+	ResolveNowCallback func(resolver.ResolveNowOptions)
+	// CloseCallback is called when the Close method is called.  Must not be
+	// nil.  Must not be changed after the resolver may be built.
+	CloseCallback func()
+	scheme        string
 
 	// Fields actually belong to the resolver.
-	cc             resolver.ClientConn
-	bootstrapAddrs []resolver.Address
+	CC             resolver.ClientConn
+	bootstrapState *resolver.State
 }
 
-// InitialAddrs adds resolved addresses to the resolver so that
-// NewAddress doesn't need to be explicitly called after Dial.
-func (r *Resolver) InitialAddrs(addrs []resolver.Address) {
-	r.bootstrapAddrs = addrs
+// InitialState adds initial state to the resolver so that UpdateState doesn't
+// need to be explicitly called after Dial.
+func (r *Resolver) InitialState(s resolver.State) {
+	r.bootstrapState = &s
 }
 
 // Build returns itself for Resolver, because it's both a builder and a resolver.
-func (r *Resolver) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOption) (resolver.Resolver, error) {
-	r.cc = cc
-	if r.bootstrapAddrs != nil {
-		r.NewAddress(r.bootstrapAddrs)
+func (r *Resolver) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
+	r.BuildCallback(target, cc, opts)
+	r.CC = cc
+	if r.bootstrapState != nil {
+		r.UpdateState(*r.bootstrapState)
 	}
 	return r, nil
 }
@@ -65,27 +76,21 @@ func (r *Resolver) Scheme() string {
 }
 
 // ResolveNow is a noop for Resolver.
-func (*Resolver) ResolveNow(o resolver.ResolveNowOption) {}
+func (r *Resolver) ResolveNow(o resolver.ResolveNowOptions) {
+	r.ResolveNowCallback(o)
+}
 
 // Close is a noop for Resolver.
-func (*Resolver) Close() {}
-
-// NewAddress calls cc.NewAddress.
-func (r *Resolver) NewAddress(addrs []resolver.Address) {
-	r.cc.NewAddress(addrs)
+func (r *Resolver) Close() {
+	r.CloseCallback()
 }
 
-// NewServiceConfig calls cc.NewServiceConfig.
-func (r *Resolver) NewServiceConfig(sc string) {
-	r.cc.NewServiceConfig(sc)
+// UpdateState calls CC.UpdateState.
+func (r *Resolver) UpdateState(s resolver.State) {
+	r.CC.UpdateState(s)
 }
 
-// GenerateAndRegisterManualResolver generates a random scheme and a Resolver
-// with it. It also registers this Resolver.
-// It returns the Resolver and a cleanup function to unregister it.
-func GenerateAndRegisterManualResolver() (*Resolver, func()) {
-	scheme := strconv.FormatInt(time.Now().UnixNano(), 36)
-	r := NewBuilderWithScheme(scheme)
-	resolver.Register(r)
-	return r, func() { resolver.UnregisterForTesting(scheme) }
+// ReportError calls CC.ReportError.
+func (r *Resolver) ReportError(err error) {
+	r.CC.ReportError(err)
 }

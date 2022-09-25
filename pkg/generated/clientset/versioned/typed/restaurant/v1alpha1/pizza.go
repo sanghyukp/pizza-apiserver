@@ -20,6 +20,7 @@ package v1alpha1
 
 import (
 	"time"
+	"context"
 
 	v1alpha1 "github.com/programming-kubernetes/pizza-apiserver/pkg/apis/restaurant/v1alpha1"
 	scheme "github.com/programming-kubernetes/pizza-apiserver/pkg/generated/clientset/versioned/scheme"
@@ -71,7 +72,7 @@ func (c *pizzas) Get(name string, options v1.GetOptions) (result *v1alpha1.Pizza
 		Resource("pizzas").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
-		Do().
+		Do(context.TODO()).
 		Into(result)
 	return
 }
